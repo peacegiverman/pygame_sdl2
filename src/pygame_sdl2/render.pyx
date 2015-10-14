@@ -113,6 +113,18 @@ cdef class Renderer:
         t.set(self.renderer, tex)
         return TextureNode(t)
 
+    def create_streaming_texture(self, w, h):
+        cdef SDL_Texture *tex
+        cdef Texture t = Texture()
+
+        tex = SDL_CreateTexture(self.renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h)
+
+        if tex == NULL:
+            raise error()
+
+        t.set(self.renderer, tex)
+        return TextureNode(t)
+
     def load_atlas(self, filename):
         """ Loads a file in the popular JSON (Hash) format exported by
             TexturePacker and other software. """
@@ -225,6 +237,11 @@ cdef class TextureNode:
 
         else:
             raise ValueError()
+
+    def update(self, surface):
+        cdef SDL_Surface* surf = (<Surface>surface).surface
+
+        SDL_UpdateTexture(self.texture.texture, NULL, surf.pixels, surface.get_pitch())
 
     def render(self, dest=None):
         cdef SDL_Rect dest_rect
@@ -353,6 +370,25 @@ cdef class Sprite:
                 SDL_RenderCopyEx(tex.renderer, tex.texture, &tn.source_rect,
                     &real_dest, self._rotation, &pivot,
                     <SDL_RendererFlip>self._flip)
+    def copy(self):
+        s = Sprite(self.nodes)
+        s.color = (self._color.r, self._color.g, self._color.b, self._color.a)
+        s.scale = self.scale
+        s.hflip = self.hflip
+        s.vflip = self.vflip
+
+        return s
+
+    def scale_copy(self, scale):
+        new_sprite = Sprite(self.nodes)
+        new_sprite.scale = scale
+        return new_sprite
+
+    def flip_copy(self, hflip, vflip):
+        new_sprite = Sprite(self.nodes)
+        new_sprite.hflip = hflip
+        new_sprite.vflip = vflip
+        return new_sprite
 
     def collides(self, Sprite other not None):
         cdef SDL_Rect r1, r2
@@ -369,6 +405,14 @@ cdef class Sprite:
         def __set__(self, val):
             self._pos.x = val[0]
             self._pos.y = val[1]
+
+    property width:
+        def __get__(self):
+            return self._pos.w
+
+    property height:
+        def __get__(self):
+            return self._pos.h
 
     property color:
         def __set__(self, val):
