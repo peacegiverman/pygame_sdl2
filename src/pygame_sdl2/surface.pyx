@@ -190,8 +190,8 @@ cdef class Surface:
         cdef int err
 
         with nogil:
-#             err = SDL_UpperBlit(source.surface, area_ptr, self.surface, &dest_rect)
-            err = pygame_Blit(source.surface, area_ptr, self.surface, &dest_rect, special_flags)
+             err = SDL_UpperBlit(source.surface, area_ptr, self.surface, &dest_rect)
+#            err = pygame_Blit(source.surface, area_ptr, self.surface, &dest_rect, special_flags)
 
         if err:
             raise error()

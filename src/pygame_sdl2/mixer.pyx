@@ -34,7 +34,7 @@ cdef dict channel_events = {}
 cdef dict channel_queued = {}
 cdef dict current_sounds = {}
 
-cdef void channel_callback(int channel):
+cdef void channel_callback(int channel) except *:
     cdef int etype = 0
     cdef SDL_Event e
     cdef Sound next_sound
@@ -76,7 +76,7 @@ def init(frequency=22050, size=MIX_DEFAULT_FORMAT, channels=2, buffer=4096):
     global output_spec
     output_spec = get_init()
 
-    Mix_ChannelFinished(channel_callback)
+    #Mix_ChannelFinished(<void(*)(int)>channel_callback)
 
 def pre_init(frequency=22050, size=MIX_DEFAULT_FORMAT, channels=2, buffersize=4096):
     global preinit_args

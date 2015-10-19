@@ -24,7 +24,7 @@ from pygame_sdl2.surface cimport *
 from pygame_sdl2.rwobject cimport to_rwops
 from pygame_sdl2.rect cimport to_sdl_rect
 
-from pygame_sdl2.rect import Rect
+from pygame_sdl2.rect import Rect, flatten
 from pygame_sdl2.error import error
 from pygame_sdl2.color import Color
 import json
@@ -104,6 +104,7 @@ cdef class Renderer:
 
         if isinstance(fi, Surface):
             tex = SDL_CreateTextureFromSurface(self.renderer, (<Surface>fi).surface)
+            SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND)
         else:
             tex = IMG_LoadTexture_RW(self.renderer, to_rwops(fi), 1)
 
@@ -179,6 +180,24 @@ cdef class Renderer:
     def create_texture(self, size):
         if SDL_RenderTargetSupported(self.renderer) != SDL_TRUE:
             raise error()
+
+    def get_screenshot(self):
+        cdef SDL_Texture* screnshot_tex
+        cdef Texture t = Texture()
+
+        wm_size = main_window.surface.get_size()
+
+        cdef SDL_Surface *sshot = SDL_CreateRGBSurface(0, wm_size[0], wm_size[1], 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+
+        SDL_RenderReadPixels(self.renderer, NULL, SDL_PIXELFORMAT_ARGB8888, sshot.pixels, sshot.pitch);
+
+        screnshot_tex = SDL_CreateTextureFromSurface(self.renderer, sshot)
+        SDL_SetTextureBlendMode(screnshot_tex, SDL_BLENDMODE_BLEND)
+
+        SDL_FreeSurface(sshot);
+
+        t.set(self.renderer, screnshot_tex)
+        return TextureNode(t)
 
 
 cdef class Texture:
@@ -258,6 +277,18 @@ cdef class TextureNode:
                     dest_rect.h = self.trimmed_rect.h
                 SDL_RenderCopy(self.texture.renderer, self.texture.texture, NULL, &dest_rect)
 
+    property width:
+        def __get__(self):
+            return self.source_w
+
+    property height:
+        def __get__(self):
+            return self.source_h
+
+    property rect:
+        def __get__(self):
+            return (self.source_rect.x, self.source_rect.y, self.source_rect.w, self.source_rect.h)
+
 
 cdef class TextureAtlas:
     cdef object frames
@@ -305,7 +336,7 @@ cdef class Sprite:
     cdef double _scalex
     cdef double _scaley
 
-    def __init__(self, nodes):
+    def __init__(self, nodes, rect=None):
         self._color.r = 255
         self._color.g = 255
         self._color.b = 255
@@ -317,7 +348,17 @@ cdef class Sprite:
         memset(&self._pos, 0, sizeof(SDL_Rect))
         memset(&self.bounding_box, 0, sizeof(SDL_Rect))
 
+        cdef TextureNode node
         if isinstance(nodes, TextureNode):
+            if rect != None:
+                rect = tuple(flatten(rect))
+                # create a new node
+                node = TextureNode(nodes)
+                to_sdl_rect(rect, &node.source_rect)
+                to_sdl_rect((0, 0, rect[2], rect[3]), &node.trimmed_rect)
+                node.source_w = rect[2] - rect[0]
+                node.source_h = rect[3] - rect[1]
+                nodes = node
             nodes = [nodes]
 
         self.nodes = []
@@ -370,8 +411,13 @@ cdef class Sprite:
                 SDL_RenderCopyEx(tex.renderer, tex.texture, &tn.source_rect,
                     &real_dest, self._rotation, &pivot,
                     <SDL_RendererFlip>self._flip)
-    def copy(self):
-        s = Sprite(self.nodes)
+    def copy(self, rect=None):
+        nodes = self.nodes
+        # NOTE: Hackish? We do this so the TextureNode constructor creates a new clip rect for us
+        if len(nodes) == 1 and rect != None:
+            nodes = nodes[0]
+
+        s = Sprite(nodes, rect)
         s.color = (self._color.r, self._color.g, self._color.b, self._color.a)
         s.scale = self.scale
         s.hflip = self.hflip
@@ -380,12 +426,12 @@ cdef class Sprite:
         return s
 
     def scale_copy(self, scale):
-        new_sprite = Sprite(self.nodes)
+        new_sprite = self.copy()
         new_sprite.scale = scale
         return new_sprite
 
     def flip_copy(self, hflip, vflip):
-        new_sprite = Sprite(self.nodes)
+        new_sprite = self.copy()
         new_sprite.hflip = hflip
         new_sprite.vflip = vflip
         return new_sprite
@@ -408,11 +454,11 @@ cdef class Sprite:
 
     property width:
         def __get__(self):
-            return self._pos.w
+            return self.bounding_box.w
 
     property height:
         def __get__(self):
-            return self._pos.h
+            return self.bounding_box.h
 
     property color:
         def __set__(self, val):
@@ -473,6 +519,15 @@ cdef class Sprite:
                 self._flip |= SDL_FLIP_VERTICAL
             else:
                 self._flip &= ~SDL_FLIP_VERTICAL
+
+    property rect:
+        def __get__(self):
+            if len(self.nodes) > 1:
+                raise Exception("Not implemented")
+
+            cdef TextureNode tn = self.nodes[0]
+
+            return (tn.source_rect.x, tn.source_rect.y, tn.source_rect.w, tn.source_rect.h)
 
 
 cdef class Container:
