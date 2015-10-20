@@ -238,8 +238,10 @@ class Channel(object):
 
     def set_volume(self, left, right=-1):
         if right == -1:
-            right = left
-        Mix_SetPanning(self.cid, 255*left, 255*right)
+            #right = left
+            Mix_Volume(self.cid, MIX_MAX_VOLUME*left)
+        else:
+            Mix_SetPanning(self.cid, 255*left, 255*right)
 
     def get_volume(self):
         cdef int vol = Mix_Volume(self.cid, -1)
