@@ -119,6 +119,7 @@ cdef class Renderer:
         cdef Texture t = Texture()
 
         tex = SDL_CreateTexture(self.renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h)
+        SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND)
 
         if tex == NULL:
             raise error()
@@ -411,6 +412,10 @@ cdef class Sprite:
                 SDL_RenderCopyEx(tex.renderer, tex.texture, &tn.source_rect,
                     &real_dest, self._rotation, &pivot,
                     <SDL_RendererFlip>self._flip)
+
+    def update_texture(self, surface, node=0):
+        self.nodes[0].update(surface)
+
     def copy(self, rect=None):
         nodes = self.nodes
         # NOTE: Hackish? We do this so the TextureNode constructor creates a new clip rect for us
