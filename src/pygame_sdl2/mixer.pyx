@@ -34,24 +34,25 @@ cdef dict channel_events = {}
 cdef dict channel_queued = {}
 cdef dict current_sounds = {}
 
-cdef void channel_callback(int channel) except *:
+cdef void channel_callback(int channel):
     cdef int etype = 0
     cdef SDL_Event e
     cdef Sound next_sound
 
-    etype = channel_events.get(channel, 0)
-    if etype != 0:
-        memset(&e, 0, sizeof(SDL_Event))
-        e.type = etype
-        SDL_PushEvent(&e)
+    current_sounds[channel] = None
 
-    next_sound = channel_queued.get(channel)
-    if next_sound:
-        # Prevent garbage collection.
-        current_sounds[channel] = next_sound
-        channel_queued[channel] = None
+    # etype = channel_events.get(channel, 0)
+    # if etype != 0:
+    #     memset(&e, 0, sizeof(SDL_Event))
+    #     e.type = etype
+    #     SDL_PushEvent(&e)
+    # next_sound = channel_queued.get(channel)
+    # if next_sound:
+    #     # Prevent garbage collection.
+    #     current_sounds[channel] = next_sound
+    #     channel_queued[channel] = None
 
-        Mix_PlayChannelTimed(channel, next_sound.chunk, 0, -1)
+    #     Mix_PlayChannelTimed(channel, next_sound.chunk, 0, -1)
 
 # A list of errors that occured during mixer initialization.
 errors = [ ]
@@ -76,7 +77,7 @@ def init(frequency=22050, size=MIX_DEFAULT_FORMAT, channels=2, buffer=4096):
     global output_spec
     output_spec = get_init()
 
-    #Mix_ChannelFinished(<void(*)(int)>channel_callback)
+    Mix_ChannelFinished(channel_callback)
 
 def pre_init(frequency=22050, size=MIX_DEFAULT_FORMAT, channels=2, buffersize=4096):
     global preinit_args
@@ -223,6 +224,8 @@ class Channel(object):
 
         if cid == -1:
             raise error()
+
+        current_sounds[cid] = sound
 
     def stop(self):
         Mix_HaltChannel(self.cid)
