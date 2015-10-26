@@ -174,12 +174,12 @@ cdef class Surface:
     def __repr__(self):
         return "<Surface({}x{}x{})>".format(self.surface.w, self.surface.h, self.surface.format.BitsPerPixel)
 
-    def blit(self, Surface source, dest, area=None, int special_flags=0):
+    def blit(self, Surface source, dest, area=None, int special_flags=SDL_BLENDMODE_BLEND):
         cdef SDL_Rect dest_rect
         cdef SDL_Rect area_rect
         cdef SDL_Rect *area_ptr = NULL
 
-        SDL_SetSurfaceBlendMode(source.surface, SDL_BLENDMODE_BLEND)
+        SDL_SetSurfaceBlendMode(source.surface, <SDL_BlendMode>special_flags)
 
         to_sdl_rect(dest, &dest_rect, "dest")
 
