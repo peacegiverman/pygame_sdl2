@@ -77,7 +77,7 @@ def init(frequency=22050, size=MIX_DEFAULT_FORMAT, channels=2, buffer=4096):
     global output_spec
     output_spec = get_init()
 
-    Mix_ChannelFinished(channel_callback)
+    #Mix_ChannelFinished(channel_callback)
 
 def pre_init(frequency=22050, size=MIX_DEFAULT_FORMAT, channels=2, buffersize=4096):
     global preinit_args
@@ -158,6 +158,9 @@ cdef class Sound:
 
         if cid == -1:
             raise error()
+
+        current_sounds[cid] = self
+
         return Channel(cid)
 
     def stop(self):
@@ -254,7 +257,11 @@ class Channel(object):
         return Mix_Playing(self.cid) != 0
 
     def get_sound(self):
-        return current_sounds.get(self.cid)
+        if self.get_busy():
+            return current_sounds.get(self.cid)
+        else:
+            current_sounds[self.cid] = None
+            return None
 
     def queue(self, Sound sound):
         if self.get_busy():
