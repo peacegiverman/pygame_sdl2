@@ -57,7 +57,8 @@ cdef class Font:
 
     def __dealloc__(self):
         if self.font:
-            TTF_CloseFont(self.font)
+            #TTF_CloseFont(self.font)
+            pass
 
     def __init__(self, fi, size):
         if fi is None:
