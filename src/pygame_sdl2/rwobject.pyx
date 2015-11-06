@@ -225,7 +225,7 @@ cdef SDL_RWops *to_rwops(filelike, mode="rb") except NULL:
                 rv = SDL_AllocRW()
                 rv.size = subfile_size
                 rv.seek = subfile_seek
-                rv.read = subfile_read
+                # rv.read = subfile_read
                 rv.write = NULL
                 rv.close = subfile_close
                 rv.type = 0
@@ -234,6 +234,7 @@ cdef SDL_RWops *to_rwops(filelike, mode="rb") except NULL:
                 return rv
 
         except AttributeError:
+            print("ERROR: "+sys.exc_info()[0])
             pass
 
 

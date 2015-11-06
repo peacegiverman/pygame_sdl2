@@ -77,103 +77,103 @@ int Pygame_SDL2_SavePNG_RW(SDL_RWops *src, SDL_Surface *surf,int compression){
 		goto savedone2;
 	}
 
-	png_ptr=png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,NULL,NULL);
-	if (!png_ptr){
-		SDL_SetError("Couldn't allocate memory for PNG file version: " PNG_LIBPNG_VER_STRING);
-		goto savedone2;
-	}
-	info_ptr= png_create_info_struct(png_ptr);
-	if (!info_ptr){
-		SDL_SetError("Couldn't allocate image information for PNG file");
-		goto savedone;
-	}
-	/* setup custom writer functions */
-	png_set_write_fn(png_ptr,(png_voidp)src,png_write_data,NULL);
+	// png_ptr=png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,NULL,NULL);
+	// if (!png_ptr){
+	// 	SDL_SetError("Couldn't allocate memory for PNG file version: " PNG_LIBPNG_VER_STRING);
+	// 	goto savedone2;
+	// }
+	// info_ptr= png_create_info_struct(png_ptr);
+	// if (!info_ptr){
+	// 	SDL_SetError("Couldn't allocate image information for PNG file");
+	// 	goto savedone;
+	// }
+	// /* setup custom writer functions */
+	// png_set_write_fn(png_ptr,(png_voidp)src,png_write_data,NULL);
 
-	if (setjmp(png_jmpbuf(png_ptr))){
-		SDL_SetError("Unknown error writing PNG");
-		goto savedone;
-	}
+	// if (setjmp(png_jmpbuf(png_ptr))){
+	// 	SDL_SetError("Unknown error writing PNG");
+	// 	goto savedone;
+	// }
 
-	if(compression>Z_BEST_COMPRESSION)
-		compression=Z_BEST_COMPRESSION;
+	// if(compression>Z_BEST_COMPRESSION)
+	// 	compression=Z_BEST_COMPRESSION;
 
-	if(compression == Z_NO_COMPRESSION) // No compression
-	{
-		png_set_filter(png_ptr,0,PNG_FILTER_NONE);
-		png_set_compression_level(png_ptr,Z_NO_COMPRESSION);
-	}
-	else if(compression<0) // Default compression
-		png_set_compression_level(png_ptr,Z_DEFAULT_COMPRESSION);
-	else
-		png_set_compression_level(png_ptr,compression);
+	// if(compression == Z_NO_COMPRESSION) // No compression
+	// {
+	// 	png_set_filter(png_ptr,0,PNG_FILTER_NONE);
+	// 	png_set_compression_level(png_ptr,Z_NO_COMPRESSION);
+	// }
+	// else if(compression<0) // Default compression
+	// 	png_set_compression_level(png_ptr,Z_DEFAULT_COMPRESSION);
+	// else
+	// 	png_set_compression_level(png_ptr,compression);
 
-	fmt=surf->format;
+// 	fmt=surf->format;
 
-	if (fmt->Amask) {
-		png_set_IHDR(png_ptr,info_ptr,
-			surf->w,surf->h,8,PNG_COLOR_TYPE_RGB_ALPHA,
-			PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,
-			PNG_FILTER_TYPE_DEFAULT);
-	} else {
-		png_set_IHDR(png_ptr,info_ptr,
-			surf->w,surf->h,8,PNG_COLOR_TYPE_RGB,
-			PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,
-			PNG_FILTER_TYPE_DEFAULT);
-	}
+// 	if (fmt->Amask) {
+// 		png_set_IHDR(png_ptr,info_ptr,
+// 			surf->w,surf->h,8,PNG_COLOR_TYPE_RGB_ALPHA,
+// 			PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,
+// 			PNG_FILTER_TYPE_DEFAULT);
+// 	} else {
+// 		png_set_IHDR(png_ptr,info_ptr,
+// 			surf->w,surf->h,8,PNG_COLOR_TYPE_RGB,
+// 			PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,
+// 			PNG_FILTER_TYPE_DEFAULT);
+// 	}
 
-	png_write_info(png_ptr, info_ptr);
+// 	png_write_info(png_ptr, info_ptr);
 
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
-	if (fmt->Amask) {
-		target_format = SDL_PIXELFORMAT_ABGR8888;
-	} else {
-		target_format = SDL_PIXELFORMAT_BGR888;
-	}
-#else
-	if (fmt->Amask) {
-		target_format = SDL_PIXELFORMAT_RGBA8888
-	} else {
-		target_format = SDL_PIXELFORMAT_RGB888;
-	}
-#endif
+// #if SDL_BYTEORDER == SDL_LIL_ENDIAN
+// 	if (fmt->Amask) {
+// 		target_format = SDL_PIXELFORMAT_ABGR8888;
+// 	} else {
+// 		target_format = SDL_PIXELFORMAT_BGR888;
+// 	}
+// #else
+// 	if (fmt->Amask) {
+// 		target_format = SDL_PIXELFORMAT_RGBA8888
+// 	} else {
+// 		target_format = SDL_PIXELFORMAT_RGB888;
+// 	}
+// #endif
 
-	if (surf->format->format != target_format) {
-		tempsurf = SDL_ConvertSurfaceFormat(surf, target_format, 0);
-		surf = tempsurf;
+// 	if (surf->format->format != target_format) {
+// 		tempsurf = SDL_ConvertSurfaceFormat(surf, target_format, 0);
+// 		surf = tempsurf;
 
-		if (!tempsurf){
-			SDL_SetError("Couldn't allocate temp surface");
-			goto savedone;
-		}
-	}
+// 		if (!tempsurf){
+// 			SDL_SetError("Couldn't allocate temp surface");
+// 			goto savedone;
+// 		}
+// 	}
 
-	for(i=0;i < surf->h;i++){
-		row_pointers[i]= ((png_byte*) surf->pixels) + i * surf->pitch;
-	}
+// 	for(i=0;i < surf->h;i++){
+// 		row_pointers[i]= ((png_byte*) surf->pixels) + i * surf->pitch;
+// 	}
 
-	png_write_image(png_ptr, row_pointers);
+// 	png_write_image(png_ptr, row_pointers);
 
-	if (tempsurf) {
-		SDL_FreeSurface(tempsurf);
-	}
+// 	if (tempsurf) {
+// 		SDL_FreeSurface(tempsurf);
+// 	}
 
-	png_write_end(png_ptr, NULL);
+// 	png_write_end(png_ptr, NULL);
 
-	ret=0; /* got here, so nothing went wrong. YAY! */
+// 	ret=0; /* got here, so nothing went wrong. YAY! */
 
 savedone: /* clean up and return */
-	png_destroy_write_struct(&png_ptr,&info_ptr);
+// 	png_destroy_write_struct(&png_ptr,&info_ptr);
 
 savedone2:
-	if (palette) {
-		free(palette);
-	}
-	if (palette_alpha) {
-		free(palette_alpha);
-	}
-	if (row_pointers) {
-		free(row_pointers);
-	}
+// 	if (palette) {
+// 		free(palette);
+// 	}
+// 	if (palette_alpha) {
+// 		free(palette_alpha);
+// 	}
+// 	if (row_pointers) {
+// 		free(row_pointers);
+// 	}
 	return ret;
 }
