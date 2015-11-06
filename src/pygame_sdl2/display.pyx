@@ -50,7 +50,6 @@ def sdl_main_init():
     main_done = True
 
 def sdl_main_quit():
-    print("SDL_Quit")
     SDL_Quit()
 
 # True if init has been called without quit being called.
