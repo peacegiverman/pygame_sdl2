@@ -35,7 +35,7 @@ BLENDMODE_BLEND = SDL_BLENDMODE_BLEND
 BLENDMODE_ADD = SDL_BLENDMODE_ADD
 BLENDMODE_MOD = SDL_BLENDMODE_MOD
 
-cdef bint DEBUG_DRAW_BBOX = True
+cdef bint DEBUG_DRAW_BBOX = False
 
 cdef rinfo_to_dict(SDL_RendererInfo *rinfo):
     # Ignore texture_formats for now.
@@ -97,6 +97,10 @@ cdef class Renderer:
 
         if not self.info()["accelerated"]:
             warnings.warn("Renderer is not accelerated.")
+
+    def set_logical_size(self, int width, int height, scale_quality="nearest"):
+        SDL_SetHint("SDL_HINT_RENDER_SCALE_QUALITY", scale_quality.encode())
+        SDL_RenderSetLogicalSize(self.renderer, width, height)
 
     def load_texture(self, fi):
         cdef SDL_Texture *tex
