@@ -37,6 +37,9 @@ def get_init():
 def get_count():
     return SDL_NumJoysticks()
 
+'''Available in SDL 2.0.4'''
+def use_old_xinput_mapping(int use=1):
+    SDL_SetHint('SDL_HINT_XINPUT_USE_OLD_JOYSTICK_MAPPING', str(use).encode())
 
 cdef class Joystick:
     # Allow weak references.
