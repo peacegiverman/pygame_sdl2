@@ -74,6 +74,7 @@ def quit(): # @ReservedAssignment
         except:
             pass
 
+    display.sdl_main_quit()
 
 # Import core modules.
 from pygame_sdl2.error import *
