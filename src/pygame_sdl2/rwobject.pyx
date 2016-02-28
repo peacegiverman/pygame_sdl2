@@ -234,7 +234,7 @@ cdef SDL_RWops *to_rwops(filelike, mode="rb") except NULL:
                 return rv
 
         except AttributeError:
-            print("ERROR: "+sys.exc_info()[0])
+            print("ERROR: "+str(sys.exc_info()[0]))
             pass
 
 
