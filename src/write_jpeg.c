@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <SDL.h>
+#include <stdio.h>
 #include <jpeglib.h>
 
 static int write_jpeg (
