@@ -72,6 +72,8 @@ cdef void channel_callback(int channel) with gil:
         next_sound = channel_queued.get(channel)
         if next_sound:
             threading.Thread(target=_play_current, args=(channel,)).start()
+        else:
+            current_sounds[channel] = None
 
 # A list of errors that occured during mixer initialization.
 errors = [ ]
